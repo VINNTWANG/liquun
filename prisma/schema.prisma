@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  // 课题背景、脉络
+  status      String   @default("active") // active, archived, completed
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  
+  // Relations
+  experiments Experiment[]
+  literatures Literature[]
+  tasks       Task[]
+  meetings    Meeting[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Experiment {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime @default(now())
+  content     String?  // 详细实验记录 (Markdown)
+  status      String   @default("planned") // planned, in-progress, completed
+  tags        String?  // 简单的标签系统 (comma separated)
+  
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Literature {
+  id          String   @id @default(uuid())
+  title       String
+  authors     String?
+  year        Int?
+  source      String?  // 期刊或会议名称
+  url         String?  // DOI 或 PDF 链接
+  status      String   @default("unread") // unread, reading, read
+  notes       String?  // 阅读笔记 (Markdown)
+  
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  isDone      Boolean  @default(false)
+  dueDate     DateTime?
+  priority    String   @default("medium") // low, medium, high
+  
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Meeting {
+  id          String   @id @default(uuid())
+  title       String   // 例如：组会汇报
+  date        DateTime @default(now())
+  summary     String?  // 汇报内容摘要
+  feedback    String?  // 导师或同行的反馈
+  
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
