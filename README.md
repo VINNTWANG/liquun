@@ -54,7 +54,7 @@
 
 1.  **克隆项目**
     ```bash
-    git clone https://github.com/your-username/liquun.git
+    git clone https://github.com/VINNTWANG/liquun.git
     cd liquun
     ```
 
