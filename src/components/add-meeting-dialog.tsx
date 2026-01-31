@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createMeeting } from "@/actions/schedule-actions"
 import { useState } from "react"
 import { Plus } from "lucide-react"
+import { toLocalDateTimeInputValue } from "@/lib/datetime"
 
 type Project = { id: string, title: string }
 
@@ -36,8 +37,8 @@ export function AddMeetingDialog({ projects }: { projects: Project[] }) {
             
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" name="date" type="date" required defaultValue={new Date().toISOString().split('T')[0]}/>
+                    <Label htmlFor="date">Date & Time</Label>
+                    <Input id="date" name="date" type="datetime-local" required defaultValue={toLocalDateTimeInputValue(new Date())}/>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="projectId">Related Project</Label>

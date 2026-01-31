@@ -9,7 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { updateLiterature, deleteLiterature } from "@/actions/literature-update-actions"
 import { useState, useTransition } from "react"
-import { Save, Trash2, ExternalLink } from "lucide-react"
+import { Save, ExternalLink } from "lucide-react"
+import { MarkdownPreview } from "@/components/markdown-preview"
+import { DeleteButton } from "@/components/delete-button"
 
 type Literature = {
     id: string;
@@ -76,9 +78,13 @@ export function LiteratureEditor({ literature }: { literature: Literature }) {
                     </div>
                     
                     <div className="pt-4 flex gap-2 justify-end">
-                         <Button type="button" variant="destructive" size="sm" onClick={() => startTransition(() => deleteWithId())}>
-                            <Trash2 className="w-4 h-4 mr-2"/> Delete
-                         </Button>
+                         <DeleteButton 
+                            onDelete={async () => deleteWithId()}
+                            variant="destructive"
+                            size="sm"
+                            confirmTitle="Delete Literature Entry?"
+                            confirmDescription="This will permanently remove this paper and your associated reading notes."
+                         />
                     </div>
                 </div>
             </div>
@@ -98,18 +104,14 @@ export function LiteratureEditor({ literature }: { literature: Literature }) {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             className="min-h-[500px] font-mono text-sm leading-relaxed" 
-                            placeholder="Write your key takeaways, methodology notes, and critiques here..."
+                            placeholder="Write your key takeaways, methodology notes, and critiques here. LaTeX supported: $E=mc^2$"
                         />
                          <p className="text-xs text-muted-foreground mt-2">Markdown supported.</p>
                     </TabsContent>
                     <TabsContent value="preview">
                         <Card>
-                            <CardContent className="min-h-[500px] py-4 prose prose-slate max-w-none">
-                                {notes ? (
-                                    <div className="whitespace-pre-wrap">{notes}</div>
-                                ) : (
-                                    <div className="text-muted-foreground italic">No notes written yet.</div>
-                                )}
+                            <CardContent className="min-h-[500px] py-4">
+                                <MarkdownPreview content={notes} />
                             </CardContent>
                         </Card>
                     </TabsContent>

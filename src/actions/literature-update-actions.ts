@@ -2,7 +2,6 @@
 
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 
 export async function updateLiterature(id: string, formData: FormData) {
   const notes = formData.get("notes") as string
@@ -31,5 +30,4 @@ export async function updateLiterature(id: string, formData: FormData) {
 export async function deleteLiterature(id: string) {
     await db.literature.delete({ where: { id } })
     revalidatePath("/literature")
-    redirect("/literature")
 }

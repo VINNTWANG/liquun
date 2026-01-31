@@ -25,6 +25,36 @@ export async function createMeeting(formData: FormData) {
   revalidatePath("/schedule")
 }
 
+export async function updateMeeting(id: string, formData: FormData) {
+  const title = formData.get("title") as string
+  const dateStr = formData.get("date") as string
+  const summary = formData.get("summary") as string
+  const feedback = formData.get("feedback") as string
+  const projectId = formData.get("projectId") as string
+
+  if (!title) throw new Error("Title is required")
+
+  await db.meeting.update({
+    where: { id },
+    data: {
+      title,
+      date: dateStr ? new Date(dateStr) : new Date(),
+      summary,
+      feedback,
+      projectId: projectId || null
+    }
+  })
+
+  revalidatePath("/schedule")
+}
+
+export async function deleteMeeting(id: string) {
+  await db.meeting.delete({
+    where: { id }
+  })
+  revalidatePath("/schedule")
+}
+
 export async function createTask(formData: FormData) {
   const title = formData.get("title") as string
   const dueDateStr = formData.get("dueDate") as string
@@ -40,6 +70,34 @@ export async function createTask(formData: FormData) {
       priority: priority || "medium",
       projectId: projectId || null,
       isDone: false
+    }
+  })
+
+  revalidatePath("/schedule")
+}
+
+export async function deleteTask(id: string) {
+  await db.task.delete({
+    where: { id }
+  })
+  revalidatePath("/schedule")
+}
+
+export async function updateTask(id: string, formData: FormData) {
+  const title = formData.get("title") as string
+  const dueDateStr = formData.get("dueDate") as string
+  const priority = formData.get("priority") as string
+  const projectId = formData.get("projectId") as string
+
+  if (!title) throw new Error("Title is required")
+
+  await db.task.update({
+    where: { id },
+    data: {
+      title,
+      dueDate: dueDateStr ? new Date(dueDateStr) : null,
+      priority: priority || "medium",
+      projectId: projectId || null
     }
   })
 

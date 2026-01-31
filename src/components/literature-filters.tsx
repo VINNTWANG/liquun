@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useRef } from "react"
 
 // Note: use-debounce is great but I might not have it installed. 
 // I'll implement a simple timeout based debounce to avoid extra deps for now.
@@ -22,12 +23,22 @@ export function LiteratureFilters() {
   }
 
   // Simple debounce wrapper
-  let timeoutId: NodeJS.Timeout;
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+      }
       const val = e.target.value;
-      timeoutId = setTimeout(() => handleSearch(val), 300);
+      timeoutRef.current = setTimeout(() => handleSearch(val), 300);
   }
+
+  useEffect(() => {
+      return () => {
+          if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current)
+          }
+      }
+  }, [])
 
   const handleStatusChange = (val: string) => {
       const params = new URLSearchParams(searchParams)

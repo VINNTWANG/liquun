@@ -9,39 +9,35 @@ import {
   FlaskConical, 
   BookOpen, 
   Calendar,
-  Settings
+  Microscope // New icon for a more scientific feel
 } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const routes = [
   {
-    label: "概览 (Dashboard)",
+    label: "Overview", // Simpler, English labels are common in international labs
     icon: LayoutDashboard,
     href: "/",
-    color: "text-sky-500",
   },
   {
-    label: "课题管理 (Projects)",
+    label: "Projects",
     icon: FolderKanban,
     href: "/projects",
-    color: "text-violet-500",
   },
   {
-    label: "实验记录 (Experiments)",
+    label: "Notebook",
     icon: FlaskConical,
     href: "/experiments",
-    color: "text-pink-700",
   },
   {
-    label: "文献库 (Literature)",
+    label: "Publications",
     icon: BookOpen,
     href: "/literature",
-    color: "text-orange-700",
   },
   {
-    label: "日程与汇报 (Schedule)",
+    label: "Schedule",
     icon: Calendar,
     href: "/schedule",
-    color: "text-emerald-500",
   },
 ]
 
@@ -49,36 +45,50 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <div className="space-y-4 py-4 flex flex-col h-full bg-slate-900 text-white">
-      <div className="px-3 py-2 flex-1">
-        <Link href="/" className="flex items-center pl-3 mb-14">
-          <div className="relative w-8 h-8 mr-4">
-             {/* Placeholder Logo */}
-             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-600 to-teal-600 rounded-lg animate-pulse"></div>
+    <div className="flex flex-col h-full bg-[#0f172a] text-slate-300 border-r border-slate-800">
+      {/* Header / Brand */}
+      <div className="px-6 py-8">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="bg-teal-600/10 p-2 rounded-md border border-teal-600/20 group-hover:border-teal-600/50 transition-colors">
+             <Microscope className="w-6 h-6 text-teal-500" />
           </div>
-          <h1 className="text-xl font-bold italic">利群 <span className="text-emerald-400 not-italic font-normal text-sm ml-1">Liquun</span></h1>
+          <div>
+            <h1 className="text-lg font-semibold text-slate-100 tracking-tight leading-none">LIQUUN</h1>
+            <p className="text-[10px] text-slate-500 font-mono mt-1 uppercase tracking-wider">Research Laboratory</p>
+          </div>
         </Link>
-        <div className="space-y-1">
-          {routes.map((route) => (
-            <Link
-              key={route.href}
-              href={route.href}
-              className={cn(
-                "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-white hover:bg-white/10 rounded-lg transition",
-                pathname === route.href ? "text-white bg-white/10" : "text-zinc-400"
-              )}
-            >
-              <div className="flex items-center flex-1">
-                <route.icon className={cn("h-5 w-5 mr-3", route.color)} />
-                {route.label}
-              </div>
-            </Link>
-          ))}
-        </div>
       </div>
-      <div className="px-3 py-2">
-         <div className="text-xs text-zinc-500 px-3 py-2">
-             Local System v1.0
+
+      {/* Navigation */}
+      <div className="flex-1 px-4 space-y-1">
+          {routes.map((route) => {
+            const isActive = pathname === route.href;
+            return (
+                <Link
+                key={route.href}
+                href={route.href}
+                className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
+                    isActive 
+                        ? "bg-teal-600/10 text-teal-400 border border-teal-600/20" 
+                        : "hover:bg-slate-800 hover:text-slate-100 text-slate-400 border border-transparent"
+                )}
+                >
+                <route.icon className={cn("h-4 w-4", isActive ? "text-teal-400" : "text-slate-500 group-hover:text-slate-300")} />
+                {route.label}
+                </Link>
+            )
+          })}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-slate-800 bg-[#0b1120]">
+         <div className="flex items-center justify-between">
+             <div className="flex flex-col">
+                 <span className="text-xs font-semibold text-slate-400">Zhang-Style System</span>
+                 <span className="text-[10px] text-slate-600">v2.0 Build 2026</span>
+             </div>
+            <ThemeToggle />
          </div>
       </div>
     </div>

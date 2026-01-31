@@ -26,4 +26,13 @@ export async function addLiterature(formData: FormData) {
   })
 
   revalidatePath(`/projects/${projectId}`)
+  revalidatePath("/literature")
+}
+
+export async function deleteLiteratureFromProject(id: string, projectId: string) {
+  await db.literature.delete({
+    where: { id }
+  })
+  revalidatePath(`/projects/${projectId}`)
+  revalidatePath("/literature")
 }

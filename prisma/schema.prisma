@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
 }
 
 datasource db {
@@ -35,6 +36,17 @@ model Experiment {
   content     String?  // 详细实验记录 (Markdown)
   status      String   @default("planned") // planned, in-progress, completed
   tags        String?  // 简单的标签系统 (comma separated)
+
+  // Life-science friendly metadata (optional, but useful across disciplines)
+  assayType      String? // 实验类型 / 方法 (e.g., qPCR, LC-MS, simulation)
+  sampleType     String? // 样本 / 材料 (e.g., tissue, cell lysate, catalyst)
+  organism       String? // 物种 / 来源
+  cellLine       String? // 细胞系
+  strain         String? // 菌株 / 品系
+  biosafetyLevel String? // BSL / 合规等级
+  protocol       String? // SOP / Protocol
+  instrument     String? // 仪器 / 平台
+  reagentLot     String? // 试剂批号 / Lot
   
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
