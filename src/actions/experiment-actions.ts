@@ -26,6 +26,16 @@ export async function createExperiment(formData: FormData) {
   const protocol = (formData.get("protocol") as string) || null
   const instrument = (formData.get("instrument") as string) || null
   const reagentLot = (formData.get("reagentLot") as string) || null
+  const plateMapRaw = formData.get("plateMap")
+  let plateMap: string | null = null
+  if (typeof plateMapRaw === "string" && plateMapRaw.trim().length > 0) {
+    try {
+      JSON.parse(plateMapRaw)
+      plateMap = plateMapRaw
+    } catch {
+      plateMap = null
+    }
+  }
 
   if (!title || !projectId) {
     throw new Error("Title and Project are required")
@@ -47,7 +57,8 @@ export async function createExperiment(formData: FormData) {
       biosafetyLevel,
       protocol,
       instrument,
-      reagentLot
+      reagentLot,
+      plateMap
     }
   })
 
@@ -110,6 +121,16 @@ export async function updateExperiment(id: string, formData: FormData) {
   const protocol = (formData.get("protocol") as string) || null
   const instrument = (formData.get("instrument") as string) || null
   const reagentLot = (formData.get("reagentLot") as string) || null
+  const plateMapRaw = formData.get("plateMap")
+  let plateMap: string | null = null
+  if (typeof plateMapRaw === "string" && plateMapRaw.trim().length > 0) {
+    try {
+      JSON.parse(plateMapRaw)
+      plateMap = plateMapRaw
+    } catch {
+      plateMap = null
+    }
+  }
 
 
 
@@ -146,7 +167,8 @@ export async function updateExperiment(id: string, formData: FormData) {
       biosafetyLevel,
       protocol,
       instrument,
-      reagentLot
+      reagentLot,
+      plateMap
 
     }
 

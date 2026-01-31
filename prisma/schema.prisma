@@ -47,6 +47,7 @@ model Experiment {
   protocol       String? // SOP / Protocol
   instrument     String? // 仪器 / 平台
   reagentLot     String? // 试剂批号 / Lot
+  plateMap       String? // 孔板/皿位布局与记录 (JSON string)
   
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)

@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { MarkdownPreview } from "@/components/markdown-preview"
 import { toast } from "sonner"
 import { toLocalDateTimeInputValue } from "@/lib/datetime"
+import { PlateMapEditor, PlateMapValue } from "@/components/plate-map-editor"
 
 const EXPERIMENT_TEMPLATES = {
     "life-science": {
@@ -146,9 +147,9 @@ const EXPERIMENT_TEMPLATES = {
 `
     },
     pcr: {
-        label: "PCR / qPCR System",
+        label: "PCR System",
         summary: "Primer design, mix recipe, cycling, and controls.",
-        content: `# PCR / qPCR
+        content: `# PCR
 
 ## Objective
 
@@ -179,8 +180,125 @@ const EXPERIMENT_TEMPLATES = {
 - Positive control:
 
 ## Results
-- Gel / curve:
-- Ct (if qPCR):
+- Gel / amplification:
+
+## Notes / Next Steps
+`
+    },
+    qpcr: {
+        label: "qPCR System",
+        summary: "qPCR setup, standards, and Ct analysis.",
+        content: `# qPCR
+
+## Objective
+
+## Template
+- Source:
+- Concentration:
+
+## Primers / Probes
+- Forward:
+- Reverse:
+- Probe:
+
+## Reaction Mix
+- Master mix:
+- Primer/probe conc:
+- Template input:
+- Final volume:
+
+## Cycling Conditions
+- Initial denaturation:
+- Annealing:
+- Extension:
+- Cycles:
+
+## Standards / Controls
+- NTC:
+- Standards:
+
+## Results
+- Ct values:
+- Melt curve:
+
+## Notes / Next Steps
+`
+    },
+    "pcr-strip": {
+        label: "PCR Strip (8-tube)",
+        summary: "Eight-tube layout with per-tube labels and reaction mix.",
+        content: `# PCR Strip (8‑Tube)
+
+## Objective
+
+## Tube Layout
+- T1:
+- T2:
+- T3:
+- T4:
+- T5:
+- T6:
+- T7:
+- T8:
+
+## Reaction Mix (per tube)
+- Template:
+- Primers:
+- Master mix:
+- Final volume:
+
+## Cycling Conditions
+- Initial denaturation:
+- Annealing:
+- Extension:
+- Cycles:
+
+## Controls
+- NTC:
+- Positive control:
+
+## Results
+- Gel / amplification:
+
+## Notes / Next Steps
+`
+    },
+    "qpcr-strip": {
+        label: "qPCR Strip (8-tube)",
+        summary: "qPCR strip map with Ct tracking and standards.",
+        content: `# qPCR Strip (8‑Tube)
+
+## Objective
+
+## Tube Layout
+- T1:
+- T2:
+- T3:
+- T4:
+- T5:
+- T6:
+- T7:
+- T8:
+
+## Reaction Mix (per tube)
+- Template:
+- Primers/probes:
+- Master mix:
+- Final volume:
+
+## Cycling Conditions
+- Initial denaturation:
+- Annealing:
+- Extension:
+- Cycles:
+
+## Standards / Controls
+- NTC:
+- Standards:
+
+## Results
+- Ct values:
+- Melt curve:
 
 ## Notes / Next Steps
 `
@@ -481,6 +599,23 @@ const EXPERIMENT_TEMPLATES = {
 
 type TemplateKey = keyof typeof EXPERIMENT_TEMPLATES
 
+const DEFAULT_PLATE_MAP: PlateMapValue = {
+    plateType: "plate-6",
+    shape: "circle",
+    wells: {}
+}
+
+function parsePlateMap(raw?: string | null): PlateMapValue {
+    if (!raw) return DEFAULT_PLATE_MAP
+    try {
+        const parsed = JSON.parse(raw) as PlateMapValue
+        if (!parsed?.plateType || !parsed?.shape || !parsed?.wells) return DEFAULT_PLATE_MAP
+        return parsed
+    } catch {
+        return DEFAULT_PLATE_MAP
+    }
+}
+
 type Project = {
     id: string;
     title: string;
@@ -494,6 +629,7 @@ type Experiment = {
     status: string
     tags: string | null
     projectId: string
+    plateMap?: string | null
     assayType?: string | null
     sampleType?: string | null
     organism?: string | null
@@ -514,6 +650,7 @@ interface ExperimentFormProps {
 export function ExperimentForm({ projects, defaultProjectId, initialData }: ExperimentFormProps) {
   const [content, setContent] = useState(initialData?.content || "")
   const [templateKey, setTemplateKey] = useState<TemplateKey>("life-science")
+  const [plateMap, setPlateMap] = useState<PlateMapValue>(() => parsePlateMap(initialData?.plateMap))
   const isEditing = !!initialData
   const formAction = isEditing ? updateExperiment.bind(null, initialData.id) : createExperiment
   const selectedTemplate = EXPERIMENT_TEMPLATES[templateKey]
@@ -555,6 +692,7 @@ export function ExperimentForm({ projects, defaultProjectId, initialData }: Expe
         </div>
         
         <form action={handleSubmit} className="space-y-8 rounded-xl border border-slate-200/80 bg-white p-6 md:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-950/60">
+            <input type="hidden" name="plateMap" value={JSON.stringify(plateMap)} />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="title">Experiment Title</Label>
@@ -675,6 +813,16 @@ export function ExperimentForm({ projects, defaultProjectId, initialData }: Expe
                         <Input id="reagentLot" name="reagentLot" placeholder="Lot #A12345" defaultValue={initialData?.reagentLot || ""} />
                     </div>
                 </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4 md:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/60">
+                <div className="mb-4">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Plate / Dish Map (optional)</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Use the grid to record per‑well or per‑dish conditions, treatments, and observations.
+                    </p>
+                </div>
+                <PlateMapEditor value={plateMap} onChange={setPlateMap} />
             </div>
 
             <div className="space-y-2">
