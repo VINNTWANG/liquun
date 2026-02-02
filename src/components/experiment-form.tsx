@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { createExperiment, updateExperiment } from "@/actions/experiment-actions"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { MarkdownPreview } from "@/components/markdown-preview"
@@ -602,15 +602,19 @@ type TemplateKey = keyof typeof EXPERIMENT_TEMPLATES
 const DEFAULT_PLATE_MAP: PlateMapValue = {
     plateType: "plate-6",
     shape: "circle",
+    stripCount: 1,
     wells: {}
 }
 
 function parsePlateMap(raw?: string | null): PlateMapValue {
     if (!raw) return DEFAULT_PLATE_MAP
     try {
-        const parsed = JSON.parse(raw) as PlateMapValue
+        const parsed = typeof raw === "string" ? (JSON.parse(raw) as PlateMapValue) : (raw as PlateMapValue)
         if (!parsed?.plateType || !parsed?.shape || !parsed?.wells) return DEFAULT_PLATE_MAP
-        return parsed
+        return {
+            ...parsed,
+            stripCount: parsed.stripCount || 1
+        }
     } catch {
         return DEFAULT_PLATE_MAP
     }
@@ -654,6 +658,12 @@ export function ExperimentForm({ projects, defaultProjectId, initialData }: Expe
   const isEditing = !!initialData
   const formAction = isEditing ? updateExperiment.bind(null, initialData.id) : createExperiment
   const selectedTemplate = EXPERIMENT_TEMPLATES[templateKey]
+
+  useEffect(() => {
+      if (initialData?.plateMap) {
+          setPlateMap(parsePlateMap(initialData.plateMap))
+      }
+  }, [initialData?.plateMap])
 
   const applyTemplate = () => {
       const next = EXPERIMENT_TEMPLATES[templateKey].content

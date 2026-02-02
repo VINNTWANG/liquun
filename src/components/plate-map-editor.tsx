@@ -35,6 +35,7 @@ type WellData = {
 export type PlateMapValue = {
   plateType: PlateType
   shape: "circle" | "square"
+  stripCount?: number
   wells: Record<string, WellData>
 }
 
@@ -64,8 +65,16 @@ const rowLabel = (index: number) => String.fromCharCode(65 + index)
 function buildWellIds(rows: number, cols: number, mode: "alpha" | "strip") {
   const ids: string[] = []
   if (mode === "strip") {
-    for (let c = 1; c <= cols; c += 1) {
-      ids.push(`T${c}`)
+    if (rows === 1) {
+      for (let c = 1; c <= cols; c += 1) {
+        ids.push(`T${c}`)
+      }
+    } else {
+      for (let r = 0; r < rows; r += 1) {
+        for (let c = 1; c <= cols; c += 1) {
+          ids.push(`${rowLabel(r)}${c}`)
+        }
+      }
     }
   } else {
     for (let r = 0; r < rows; r += 1) {
@@ -94,7 +103,7 @@ function emptyWell(): WellData {
 }
 
 function getCoords(id: string, mode: "alpha" | "strip") {
-  if (mode === "strip") {
+  if (mode === "strip" && id.startsWith("T")) {
     const index = parseInt(id.replace("T", ""), 10)
     if (Number.isNaN(index)) return null
     return { row: 0, col: index - 1 }
@@ -106,8 +115,8 @@ function getCoords(id: string, mode: "alpha" | "strip") {
   return { row, col }
 }
 
-function getId(row: number, col: number, mode: "alpha" | "strip") {
-  if (mode === "strip") return `T${col + 1}`
+function getId(row: number, col: number, mode: "alpha" | "strip", rows: number) {
+  if (mode === "strip" && rows === 1) return `T${col + 1}`
   return `${rowLabel(row)}${col + 1}`
 }
 
@@ -130,7 +139,7 @@ function buildSvg({
   const cells = []
   for (let r = 0; r < rows; r += 1) {
     for (let c = 0; c < cols; c += 1) {
-      const id = getId(r, c, mode)
+      const id = getId(r, c, mode, rows)
       const well = wells[id] || {}
       const x = padding + c * cellSize
       const y = padding + r * cellSize
@@ -159,10 +168,16 @@ export function PlateMapEditor({
   value: PlateMapValue
   onChange: (next: PlateMapValue) => void
 }) {
-  const layout = PLATE_LAYOUTS[value.plateType]
+  const baseLayout = PLATE_LAYOUTS[value.plateType]
   const mode = value.plateType === "strip-8" ? "strip" : "alpha"
+  const stripRows = value.plateType === "strip-8" ? Math.max(1, value.stripCount || 1) : baseLayout.rows
+  const layout = {
+    rows: stripRows,
+    cols: baseLayout.cols,
+    label: baseLayout.label
+  }
   const wellIds = useMemo(() => buildWellIds(layout.rows, layout.cols, mode), [layout.rows, layout.cols, mode])
-  const [selectedWell, setSelectedWell] = useState<string>(layout.rows === 1 ? wellIds[0] : wellIds[0])
+  const [selectedWell, setSelectedWell] = useState<string>(wellIds[0])
 
   const updateWell = (id: string, patch: Partial<WellData>) => {
     onChange({
@@ -195,14 +210,14 @@ export function PlateMapEditor({
     const coords = getCoords(selectedWell, mode)
     if (!coords) return
     if (coords.col + 1 >= layout.cols) return
-    copyFromSelected([getId(coords.row, coords.col + 1, mode)])
+    copyFromSelected([getId(coords.row, coords.col + 1, mode, layout.rows)])
   }
 
   const copyDown = () => {
     const coords = getCoords(selectedWell, mode)
     if (!coords) return
     if (coords.row + 1 >= layout.rows) return
-    copyFromSelected([getId(coords.row + 1, coords.col, mode)])
+    copyFromSelected([getId(coords.row + 1, coords.col, mode, layout.rows)])
   }
 
   const copyRow = () => {
@@ -210,7 +225,7 @@ export function PlateMapEditor({
     if (!coords) return
     const targets = []
     for (let c = 0; c < layout.cols; c += 1) {
-      targets.push(getId(coords.row, c, mode))
+      targets.push(getId(coords.row, c, mode, layout.rows))
     }
     copyFromSelected(targets)
   }
@@ -220,7 +235,7 @@ export function PlateMapEditor({
     if (!coords) return
     const targets = []
     for (let r = 0; r < layout.rows; r += 1) {
-      targets.push(getId(r, coords.col, mode))
+      targets.push(getId(r, coords.col, mode, layout.rows))
     }
     copyFromSelected(targets)
   }
@@ -301,7 +316,8 @@ export function PlateMapEditor({
               const nextType = event.target.value as PlateType
               const nextLayout = PLATE_LAYOUTS[nextType]
               const nextMode = nextType === "strip-8" ? "strip" : "alpha"
-              const nextWell = buildWellIds(nextLayout.rows, nextLayout.cols, nextMode)[0]
+              const nextRows = nextType === "strip-8" ? Math.max(1, value.stripCount || 1) : nextLayout.rows
+              const nextWell = buildWellIds(nextRows, nextLayout.cols, nextMode)[0]
               setSelectedWell(nextWell)
               onChange({ ...value, plateType: nextType })
             }}
@@ -337,6 +353,28 @@ export function PlateMapEditor({
           </div>
         </div>
 
+        {value.plateType === "strip-8" && (
+          <div className="space-y-1">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Strip Count</Label>
+            <select
+              value={layout.rows}
+              onChange={(event) => {
+                const nextCount = Math.max(1, Math.min(6, Number(event.target.value)))
+                const nextWell = buildWellIds(nextCount, layout.cols, mode)[0]
+                setSelectedWell(nextWell)
+                onChange({ ...value, stripCount: nextCount })
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              {[1, 2, 3, 4, 5, 6].map((count) => (
+                <option key={count} value={count}>
+                  {count} strip{count > 1 ? "s" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="ml-auto flex items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={downloadCsv}>
             Export CSV
@@ -370,7 +408,10 @@ export function PlateMapEditor({
             </Button>
           </div>
           <div
-            className={cn("grid gap-2", isCompact && "max-h-[420px] overflow-auto pr-1")}
+            className={cn(
+              "grid gap-2 overflow-x-auto",
+              isCompact && "max-h-[420px] overflow-y-auto pr-1"
+            )}
             style={{
               gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))`,
               minWidth: `${gridMinWidth}px`
