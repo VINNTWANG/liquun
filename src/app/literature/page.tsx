@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import { LiteratureFilters } from "@/components/literature-filters"
+import { AddLiteratureDialog } from "@/components/add-literature-dialog"
 import {
   Table,
   TableBody,
@@ -14,6 +15,11 @@ import { Badge } from "@/components/ui/badge"
 
 export default async function LiteraturePage({ searchParams }: { searchParams: Promise<{ q?: string, status?: string }> }) {
   const { q, status } = await searchParams;
+
+  const projects = await db.project.findMany({
+    select: { id: true, title: true },
+    orderBy: { updatedAt: "desc" }
+  })
 
   // Build filter object
   const where: any = {}
@@ -48,9 +54,12 @@ export default async function LiteraturePage({ searchParams }: { searchParams: P
 
   return (
     <div className="p-8 space-y-6">
-        <div>
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Literature Library</h2>
-            <p className="text-muted-foreground">Search, filter, and manage your reading list.</p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight text-slate-900">Literature Library</h2>
+                <p className="text-muted-foreground">Search, filter, and manage your reading list.</p>
+            </div>
+            <AddLiteratureDialog projects={projects} />
         </div>
 
         <LiteratureFilters />

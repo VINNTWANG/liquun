@@ -5,11 +5,15 @@ import { revalidatePath } from "next/cache"
 
 export async function updateLiterature(id: string, formData: FormData) {
   const notes = formData.get("notes") as string
-  const status = formData.get("status") as string
+  const status = (formData.get("status") as string) || "unread"
   const title = formData.get("title") as string
   const authors = formData.get("authors") as string
   const url = formData.get("url") as string
   const year = formData.get("year") ? parseInt(formData.get("year") as string) : undefined
+
+  if (!title) {
+    throw new Error("Title is required")
+  }
 
   await db.literature.update({
     where: { id },

@@ -8,10 +8,11 @@ export async function addLiterature(formData: FormData) {
   const authors = formData.get("authors") as string
   const year = formData.get("year") ? parseInt(formData.get("year") as string) : undefined
   const url = formData.get("url") as string
-  const projectId = formData.get("projectId") as string
+  const projectIdRaw = formData.get("projectId") as string
+  const projectId = projectIdRaw?.trim() ? projectIdRaw : null
 
-  if (!title || !projectId) {
-      throw new Error("Title and Project ID are required")
+  if (!title) {
+      throw new Error("Title is required")
   }
 
   await db.literature.create({
@@ -25,7 +26,9 @@ export async function addLiterature(formData: FormData) {
     }
   })
 
-  revalidatePath(`/projects/${projectId}`)
+  if (projectId) {
+    revalidatePath(`/projects/${projectId}`)
+  }
   revalidatePath("/literature")
 }
 

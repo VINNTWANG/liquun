@@ -8,7 +8,15 @@ import { addLiterature } from "@/actions/literature-actions"
 import { useState } from "react"
 import { Plus } from "lucide-react"
 
-export function AddLiteratureDialog({ projectId }: { projectId: string }) {
+type Project = { id: string; title: string }
+
+export function AddLiteratureDialog({
+  projectId,
+  projects
+}: {
+  projectId?: string
+  projects?: Project[]
+}) {
   const [open, setOpen] = useState(false)
 
   async function clientAction(formData: FormData) {
@@ -26,7 +34,26 @@ export function AddLiteratureDialog({ projectId }: { projectId: string }) {
           <DialogTitle>Add New Reference</DialogTitle>
         </DialogHeader>
         <form action={clientAction} className="space-y-4 py-4">
-            <input type="hidden" name="projectId" value={projectId} />
+            {projectId ? (
+              <input type="hidden" name="projectId" value={projectId} />
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="projectId">Related Project (optional)</Label>
+                <select
+                  id="projectId"
+                  name="projectId"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  defaultValue=""
+                >
+                  <option value="">(None)</option>
+                  {projects?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="space-y-2">
                 <Label htmlFor="title">Paper Title</Label>
                 <Input id="title" name="title" required placeholder="Full title of the paper" />

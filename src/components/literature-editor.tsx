@@ -25,6 +25,7 @@ type Literature = {
 
 export function LiteratureEditor({ literature }: { literature: Literature }) {
     const [notes, setNotes] = useState(literature.notes || "")
+    const [status, setStatus] = useState(literature.status)
     const [isPending, startTransition] = useTransition()
 
     const updateWithId = updateLiterature.bind(null, literature.id)
@@ -61,7 +62,8 @@ export function LiteratureEditor({ literature }: { literature: Literature }) {
                 <div className="space-y-4 bg-slate-50 p-4 rounded-lg border">
                     <div className="space-y-2">
                         <Label htmlFor="status">Reading Status</Label>
-                        <Select name="status" defaultValue={literature.status}>
+                        <input type="hidden" name="status" value={status} />
+                        <Select value={status} onValueChange={setStatus}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
